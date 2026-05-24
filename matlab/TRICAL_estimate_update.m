@@ -126,13 +126,13 @@ instance.state = state + K * innovation;
 % -------------------------------------------------------------------------
 % Step 8 – Covariance update
 %   Standard form: P -= K * Pzz * K'
-%   Since K = Pxz/Pzz, this simplifies to: P -= Pxz * Pxz' / Pzz
+%   Since K = Pxz/Pzz:  K*Pzz*K' = (Pxz/Pzz)*Pzz*(Pxz/Pzz)' = Pxz*Pxz'/Pzz
 %
-%   NOTE: The original C implementation omits the /Pzz factor here,
-%   matching the simplified form P -= cross_corr * cross_corr'.
-%   This file reproduces that behaviour exactly.
+%   The original C code drops the /Pzz (see filter.c comment), which is a
+%   latent bug: it only works when field_norm ≈ 1 so Pzz ≈ O(1).  For any
+%   other scale Pxz*Pxz' >> P and P loses positive-definiteness immediately.
 % -------------------------------------------------------------------------
-instance.P = P - Pxz * Pxz';
+instance.P = P - Pxz * Pxz' / Pzz;
 
 instance.measurement_count = instance.measurement_count + 1;
 end
